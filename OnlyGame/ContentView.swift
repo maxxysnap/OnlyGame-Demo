@@ -20,6 +20,7 @@ struct ContentView: View {
 private struct MainAppView: View {
     @EnvironmentObject var authVM: AuthViewModel
     @EnvironmentObject var storeVM: StoreViewModel
+    @EnvironmentObject var tradeVM: TradeViewModel
 
     @State private var selectedTab: SidebarTab?    = .store
     @State private var featuredIndex               = 0
@@ -88,6 +89,7 @@ private struct MainAppView: View {
                 await storeVM.loadWishlist(userId: userId)
                 await authVM.refreshPendingFriends()
                 await authVM.fetchWallet()
+                await tradeVM.fetchTrades()
             }
         }
         .onChange(of: authVM.userId) {
@@ -99,11 +101,13 @@ private struct MainAppView: View {
                     await storeVM.loadWishlist(userId: userId)
                     await authVM.refreshPendingFriends()
                     await authVM.fetchWallet()
+                    await tradeVM.fetchTrades()
                 }
             } else {
                 storeVM.currentUserId = nil
                 storeVM.cloudLibraryIds = []
                 storeVM.wishlistIds = []
+                tradeVM.reset()
             }
         }
     }
@@ -134,6 +138,17 @@ private struct MainAppView: View {
                 SignInRequiredView(
                     icon: "books.vertical.fill",
                     message: "Sign in to see your library",
+                    onSignIn: { isAuthSheetPresented = true }
+                )
+            }
+
+        case .trade:
+            if authVM.isSignedIn {
+                TradeView()
+            } else {
+                SignInRequiredView(
+                    icon: "arrow.left.arrow.right.circle.fill",
+                    message: "Sign in to trade games",
                     onSignIn: { isAuthSheetPresented = true }
                 )
             }
@@ -310,4 +325,5 @@ private struct MainAppView: View {
     ContentView()
         .environmentObject(AuthViewModel())
         .environmentObject(StoreViewModel())
+        .environmentObject(TradeViewModel())
 }
